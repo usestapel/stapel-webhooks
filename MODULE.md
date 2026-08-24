@@ -88,13 +88,21 @@ events through `EXTRA_CATALOG_PATHS`.
 
 ## 4. HTTP surface
 
-`IsNotAnonymousUser` on every route. **A caller sees the rules whose
-`owner_id` is their user id; staff see all.** There is no workspace
-capability call, and that is a choice: the reaction layer must be installable
-in a deployment that has no stapel-workspaces, and a fail-closed capability
-check against a service that is not there would make it unusable exactly
-where it is most wanted. `workspace_id` is carried on the row for hosts that
-do have tenancy, and scoping by it is one subclassed view away (§9).
+`HasWorkspaceMandateIfScoped` on every route — the library-shaped mandate
+gate (`views.py`). An anonymous session is refused in every deployment shape;
+beyond that the gate adapts: in a host that can answer the mandate question
+it enforces the third principal state (a registered account belonging to no
+workspace is a guest, not a user), and in a single-tenant host, where no
+mandate exists for anybody to hold, it admits. The strict `HasWorkspaceMandate`
+would 503 everyone in the second shape, and the reaction layer must be
+installable there. A seam that IS wired and then fails to answer still
+raises 503 `error.503.mandate_unavailable` — **a client must handle it**;
+unreachable-by-configuration and unreachable-right-now are different facts.
+
+**A caller sees the rules whose `owner_id` is their user id; staff see all.**
+There is no per-workspace capability call on top of that, and that is a
+choice for the same reason. `workspace_id` is carried on the row for hosts
+that do have tenancy, and scoping by it is one subclassed view away (§9).
 
 | Route | Method | Notes |
 |---|---|---|
@@ -317,11 +325,16 @@ Deliberate non-features, each a refusal rather than an omission:
   POST shape around core's `ip_is_forbidden` (the IP *policy* — the part that
   must never drift — is imported, not copied). A `post_bytes` in
   `stapel_core.net` is the right home for it and is the follow-up.
-* **No contract triad.** This module does not yet emit
-  `docs/{schema,flows,errors,capabilities}.json`; `_codegen_settings.py` is
-  in place (the single settings source the emitters would use) but the
-  emitters are not. Until then `stapel-catalog --from-installed` sees the
-  wheel's `schemas/` but no OpenAPI slice.
+* **No `capabilities.json` yet.** Since 0.1.1 the module emits its contract
+  triad — `docs/{schema,flows,errors}.json`, `make contract`, drift-gated by
+  `make contract-check` and `tests/test_contract_triad.py` — from a
+  single-module `{webhooks + core}` instance at the canonical
+  `/webhooks/api/v1` prefix (`_codegen.py` / `_codegen_settings.py` /
+  `codegen_urls.py`), and all three ship in the wheel. The fourth artifact,
+  `docs/capabilities.json` (plus `llms.txt` / an assembled README), is still
+  missing, so `stapel-catalog --from-installed` reads the OpenAPI slice but
+  no curated capability map. `docs/flows.json` is `[]` on purpose: the
+  subscription builder's flow belongs to the client.
 * **No GDPR provider.** A subscription's `owner_id` is a user id and its
   target may be a personal email; there is no `user.deleted` consumer yet, so
   a deleted account's rules survive it. Deliberate for 0.1.0 — the erasure

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stapel-webhooks"
-version = "0.1.0"
+version = "0.1.1"
 description = "Reaction layer: event subscriptions and webhook delivery for the Stapel framework"
 readme = "README.md"
 license = { text = "MIT" }
@@ -64,6 +64,9 @@ packages = ["stapel_webhooks", "stapel_webhooks.migrations"]
 stapel_webhooks = [
     "py.typed",
     "CONFIG.MD",
+    "docs/schema.json",
+    "docs/flows.json",
+    "docs/errors.json",
     "migrations/*.py",
     "schemas/**/*.json",
     "translations/*.json",

@@ -1,0 +1,836 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "",
+    "version": "0.0.0"
+  },
+  "paths": {
+    "/webhooks/api/v1/deliveries/{delivery_id}": {
+      "get": {
+        "operationId": "webhooks_api_v1_deliveries_retrieve",
+        "description": "One delivery record, payload included — what a replay would send.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "delivery_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryPresenterDTO"
+                },
+                "examples": {
+                  "DeliveryPresenterDTO": {
+                    "value": {
+                      "id": "9aa1c0de-0000-4000-8000-000000000001",
+                      "subscription_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "event_type": "listing.published",
+                      "event_id": "b0c1...",
+                      "status": "retrying",
+                      "attempts": 2,
+                      "response_status": 503,
+                      "last_error": "Service Unavailable",
+                      "next_attempt_at": "2026-08-24T10:05:00+00:00",
+                      "last_attempt_at": "2026-08-24T10:00:00+00:00",
+                      "completed_at": null,
+                      "created_at": "2026-08-24T09:59:00+00:00"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/deliveries/{delivery_id}/replay": {
+      "post": {
+        "operationId": "webhooks_api_v1_deliveries_replay_create",
+        "description": "Put a dead letter back in the queue, with the full ladder again.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "delivery_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayResultDTO"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/event-catalog": {
+      "get": {
+        "operationId": "webhooks_api_v1_event_catalog_retrieve",
+        "description": "What this deployment can react to, and how it can deliver.\n\nGenerated from installed packages' ``schemas/emits/`` on every call\n(the scan is cached per process), so the subscription builder is never\na mirror of a list somebody maintains.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventCatalogDTO"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/subscriptions": {
+      "get": {
+        "operationId": "webhooks_api_v1_subscriptions_list",
+        "description": "List the caller's reaction rules, or write a new one.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "event_type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "is_active",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionPresenterDTO"
+                  }
+                },
+                "examples": {
+                  "SubscriptionPresenterDTO": {
+                    "value": [
+                      {
+                        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "event_type": "listing.published",
+                        "delivery": "webhook",
+                        "target": {
+                          "url": "https://example.com/hooks/stapel"
+                        },
+                        "filter": {
+                          "city": "berlin"
+                        },
+                        "description": "CRM sync",
+                        "is_active": true,
+                        "has_secret": true,
+                        "consecutive_failures": 0,
+                        "disabled_at": null,
+                        "last_delivery_at": "2026-08-24T10:00:00+00:00",
+                        "owner_id": "5cc26b64-0717-4562-b3fc-2c963f66a001",
+                        "workspace_id": null,
+                        "created_at": "2026-08-20T09:00:00+00:00",
+                        "updated_at": "2026-08-24T10:00:00+00:00"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "operationId": "webhooks_api_v1_subscriptions_create",
+        "description": "List the caller's reaction rules, or write a new one.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "tags": [
+          "Webhooks"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionSecretDTO"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/subscriptions/{subscription_id}": {
+      "get": {
+        "operationId": "webhooks_api_v1_subscriptions_retrieve",
+        "description": "Read, patch or delete one reaction rule.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPresenterDTO"
+                },
+                "examples": {
+                  "SubscriptionPresenterDTO": {
+                    "value": {
+                      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "event_type": "listing.published",
+                      "delivery": "webhook",
+                      "target": {
+                        "url": "https://example.com/hooks/stapel"
+                      },
+                      "filter": {
+                        "city": "berlin"
+                      },
+                      "description": "CRM sync",
+                      "is_active": true,
+                      "has_secret": true,
+                      "consecutive_failures": 0,
+                      "disabled_at": null,
+                      "last_delivery_at": "2026-08-24T10:00:00+00:00",
+                      "owner_id": "5cc26b64-0717-4562-b3fc-2c963f66a001",
+                      "workspace_id": null,
+                      "created_at": "2026-08-20T09:00:00+00:00",
+                      "updated_at": "2026-08-24T10:00:00+00:00"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "webhooks_api_v1_subscriptions_partial_update",
+        "description": "Read, patch or delete one reaction rule.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedSubscriptionPatch"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedSubscriptionPatch"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedSubscriptionPatch"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPresenterDTO"
+                },
+                "examples": {
+                  "SubscriptionPresenterDTO": {
+                    "value": {
+                      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "event_type": "listing.published",
+                      "delivery": "webhook",
+                      "target": {
+                        "url": "https://example.com/hooks/stapel"
+                      },
+                      "filter": {
+                        "city": "berlin"
+                      },
+                      "description": "CRM sync",
+                      "is_active": true,
+                      "has_secret": true,
+                      "consecutive_failures": 0,
+                      "disabled_at": null,
+                      "last_delivery_at": "2026-08-24T10:00:00+00:00",
+                      "owner_id": "5cc26b64-0717-4562-b3fc-2c963f66a001",
+                      "workspace_id": null,
+                      "created_at": "2026-08-20T09:00:00+00:00",
+                      "updated_at": "2026-08-24T10:00:00+00:00"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "webhooks_api_v1_subscriptions_destroy",
+        "description": "Read, patch or delete one reaction rule.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/subscriptions/{subscription_id}/deliveries": {
+      "get": {
+        "operationId": "webhooks_api_v1_subscriptions_deliveries_list",
+        "description": "The delivery log of one rule — including its dead letters.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeliveryPresenterDTO"
+                  }
+                },
+                "examples": {
+                  "DeliveryPresenterDTO": {
+                    "value": [
+                      {
+                        "id": "9aa1c0de-0000-4000-8000-000000000001",
+                        "subscription_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "event_type": "listing.published",
+                        "event_id": "b0c1...",
+                        "status": "retrying",
+                        "attempts": 2,
+                        "response_status": 503,
+                        "last_error": "Service Unavailable",
+                        "next_attempt_at": "2026-08-24T10:05:00+00:00",
+                        "last_attempt_at": "2026-08-24T10:00:00+00:00",
+                        "completed_at": null,
+                        "created_at": "2026-08-24T09:59:00+00:00"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/webhooks/api/v1/subscriptions/{subscription_id}/secret": {
+      "post": {
+        "operationId": "webhooks_api_v1_subscriptions_secret_create",
+        "description": "Rotate the signing secret and hand back the new one.\n\n**Permissions:** `HasWorkspaceMandateIfScoped`",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "JWTCookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionSecretDTO"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CatalogEventDTO": {
+        "type": "object",
+        "description": "One subscribable event, as the subscription builder needs it.",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "description",
+          "event",
+          "module",
+          "package"
+        ]
+      },
+      "DeliveryPresenterDTO": {
+        "type": "object",
+        "description": "Presents one delivery attempt record.",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "description": "event type"
+          },
+          "event_id": {
+            "type": "string",
+            "description": "event id"
+          },
+          "status": {
+            "type": "string",
+            "description": "status"
+          },
+          "attempts": {
+            "type": "integer",
+            "description": "attempts"
+          },
+          "response_status": {
+            "type": "integer",
+            "description": "response status"
+          },
+          "last_error": {
+            "type": "string",
+            "description": "last error"
+          },
+          "id": {
+            "type": "string"
+          },
+          "subscription_id": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "The event payload as it was matched — what a replay would send."
+          },
+          "next_attempt_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_attempt_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "completed_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "attempts",
+          "event_id",
+          "event_type",
+          "id",
+          "last_error",
+          "payload",
+          "response_status",
+          "status",
+          "subscription_id"
+        ]
+      },
+      "EventCatalogDTO": {
+        "type": "object",
+        "description": "Everything this deployment can react to, generated from installed\npackages' ``schemas/emits/`` — never a hand-kept list.",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogEventDTO"
+            }
+          },
+          "delivery_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PatchedSubscriptionPatch": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "delivery": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "filter": {},
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReplayResultDTO": {
+        "type": "object",
+        "description": "What a replay did: the row is queued again, from attempt zero.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "next_attempt_at": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "SubscriptionCreate": {
+        "type": "object",
+        "description": "The reaction rule, as a client writes it.\n\n``filter`` keeps the design document's name on the wire even though the\ncolumn is ``payload_filter``: the API is where the vocabulary of the\nfeature lives, and \"filter\" is what it is called everywhere else.",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "delivery": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "filter": {},
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "workspace_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "delivery",
+          "event_type",
+          "target"
+        ]
+      },
+      "SubscriptionPresenterDTO": {
+        "type": "object",
+        "description": "Presents a reaction rule to its owner.",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "description": "event type"
+          },
+          "delivery": {
+            "type": "string",
+            "description": "delivery"
+          },
+          "description": {
+            "type": "string",
+            "description": "description"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "is active"
+          },
+          "consecutive_failures": {
+            "type": "integer",
+            "description": "consecutive failures"
+          },
+          "id": {
+            "type": "string"
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Delivery-type-specific destination."
+          },
+          "filter": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "JSON predicate over the event payload; {} matches every event."
+          },
+          "has_secret": {
+            "type": "boolean",
+            "description": "Whether a signing secret exists. The secret itself is only ever returned by create and rotate."
+          },
+          "owner_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "workspace_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "disabled_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_delivery_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "consecutive_failures",
+          "delivery",
+          "description",
+          "event_type",
+          "filter",
+          "has_secret",
+          "id",
+          "is_active",
+          "target"
+        ]
+      },
+      "SubscriptionSecretDTO": {
+        "type": "object",
+        "description": "The one and only time a signing secret is readable.\n\nReturned by create and by rotate, never by a read. A secret that can be\nfetched again is a secret whose leak has no expiry — the receiver stores\nit on first sight, exactly like an API key.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "secret"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "JWTCookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "stapel_jwt",
+        "description": "JWT token stored in cookie. Login via /auth/admin/ to get the cookie."
+      }
+    }
+  }
+}

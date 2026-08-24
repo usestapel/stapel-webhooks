@@ -58,7 +58,12 @@ jobs:
         run: python -m stapel_core.lint.emit_check .
 
       - name: Install test dependencies
-        run: pip install pytest pytest-django pytest-cov
+        # stapel-tools: tests/test_contract_triad.py drives the contract
+        # emitters (stapel_tools.codegen) through `python -m
+        # stapel_webhooks._codegen`. Without it the emission subprocess dies
+        # and the gate goes red — correctly: a drift gate that cannot run has
+        # failed, it has not passed.
+        run: pip install pytest pytest-django pytest-cov "stapel-tools>=0.9.1,<1"
 
       - name: Tests with coverage
         run: |

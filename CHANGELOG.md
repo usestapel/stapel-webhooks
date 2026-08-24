@@ -6,6 +6,39 @@ Pre-1.0 semver: **minor = breaking**, patch = compatible.
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-24
+
+### Added
+- **Own contract triad** (`_codegen.py` / `codegen_urls.py`, `make contract`):
+  `docs/schema.json`, `docs/flows.json` and `docs/errors.json` are now build
+  artifacts of this repo, emitted from a single-module `{webhooks + core}`
+  Django instance mounted at the canonical `/webhooks/api/v1` prefix
+  (contract-pipeline.md §2-3). The module is in no host's aggregate, so there
+  was no OpenAPI for it anywhere — a frontend codegen could not generate a
+  client and the react pair would have hand-written its types off
+  `presenters.py` (BACKEND-GAP X-1/W-1). `_codegen_settings.py` grew a
+  `contract=True` mode carrying the production `REST_FRAMEWORK` block, so the
+  emitted schema is the one a real deployment serves; the test suite keeps
+  using the same settings function, so the two cannot drift.
+  `make contract-check` is the drift gate (also wired into `make check`), and
+  `tests/test_contract_triad.py` is the authoritative one: determinism,
+  `$ref` closure, canonical prefix, the documented ten-operation surface, and
+  the promise that no operation is anonymous.
+- `docs/{schema,flows,errors}.json` added to `package-data` — the contract
+  ships in the wheel, so `stapel-catalog --from-installed` reads it off the
+  lockfile.
+- CI installs `stapel-tools` for the test job (the emitters the drift gate
+  drives).
+
+### Fixed
+- **MODULE.md §4 named the wrong gate.** It said `IsNotAnonymousUser` on every
+  route; the code has always used `HasWorkspaceMandateIfScoped` (`views.py`).
+  The difference is not cosmetic — the real gate enforces the guest state in a
+  multi-tenant host and can answer **503 `error.503.mandate_unavailable`**,
+  which a client written against the documented gate would never handle
+  (BACKEND-GAP W-9). No behaviour change; the document now describes the code.
+- MODULE.md §11 no longer claims the module emits no contract triad.
+
 ## [0.1.0] — 2026-08-24
 
 First release. The reaction layer of
