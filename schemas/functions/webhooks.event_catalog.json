@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "webhooks.event_catalog",
+  "description": "Every event an installed module declares in schemas/emits — the vocabulary a subscription may name.",
+  "type": "object",
+  "properties": {
+    "refresh": {"type": "boolean", "description": "Rebuild the cached catalog before answering."}
+  },
+  "additionalProperties": false
+}

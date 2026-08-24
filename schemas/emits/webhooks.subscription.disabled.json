@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "webhooks.subscription.disabled",
+  "description": "A subscription deactivated itself after consecutive dead-letters. Nothing more will be delivered to it until its owner re-activates it.",
+  "type": "object",
+  "required": ["subscription_id", "event_type", "reason"],
+  "properties": {
+    "subscription_id": {"type": "string", "format": "uuid"},
+    "event_type": {"type": "string"},
+    "delivery": {"type": "string"},
+    "reason": {"type": "string"}
+  },
+  "additionalProperties": false
+}

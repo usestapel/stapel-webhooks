@@ -1,0 +1,13 @@
+{
+  "error.400.webhooks_insecure_target": "Адрес вебхука должен быть https-ссылкой",
+  "error.400.webhooks_invalid_filter": "Фильтр не является корректным предикатом по полезной нагрузке",
+  "error.400.webhooks_invalid_target": "Цель не подходит выбранному способу доставки",
+  "error.400.webhooks_not_signed_type": "Этот способ доставки не использует подпись, поэтому ротировать нечего",
+  "error.400.webhooks_unknown_delivery": "Неизвестный способ доставки {delivery}",
+  "error.400.webhooks_unknown_event": "Ни один установленный модуль не публикует событие {event_type}",
+  "error.403.webhooks_forbidden": "У вас нет доступа к этой подписке",
+  "error.404.webhooks_delivery_not_found": "Доставка не найдена",
+  "error.404.webhooks_subscription_not_found": "Подписка не найдена",
+  "error.409.webhooks_not_replayable": "Повторить можно только доставку, попавшую в очередь недоставленных",
+  "error.409.webhooks_subscription_cap": "У вас уже максимальное число подписок"
+}

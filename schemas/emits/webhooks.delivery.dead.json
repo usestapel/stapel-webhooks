@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "webhooks.delivery.dead",
+  "description": "A reaction was dead-lettered: the retry ladder is exhausted, or the subscriber refused it permanently. The row survives for replay; this is the fact an operator acts on.",
+  "type": "object",
+  "required": ["delivery_id", "subscription_id", "event_type", "attempts"],
+  "properties": {
+    "delivery_id": {"type": "string", "format": "uuid"},
+    "subscription_id": {"type": "string", "format": "uuid"},
+    "event_type": {"type": "string"},
+    "event_id": {"type": "string"},
+    "attempts": {"type": "integer", "minimum": 0},
+    "error": {"type": "string"}
+  },
+  "additionalProperties": false
+}

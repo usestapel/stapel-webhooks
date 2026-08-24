@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stapel-webhooks"
+version = "0.1.0"
+description = "Reaction layer: event subscriptions and webhook delivery for the Stapel framework"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["django", "stapel", "webhooks", "events", "subscriptions", "hmac", "retry", "dead-letter"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    # Floor 0.35.0: the module stands on the comm Action bus with its
+    # transactional outbox, on ``stapel_core.net.safe_fetch.ip_is_forbidden``
+    # (the fleet's single definition of "not a routable public address",
+    # which the webhook transport reuses verbatim), on the Signal primitive
+    # the ``ws`` delivery type rides, on ``stapel_core.notifications.publish``
+    # for the ``notification`` type, and on the Presenter/StapelResponse API
+    # layer.
+    #
+    # Nothing else is a dependency, deliberately. stapel-notifications and
+    # stapel-realtime are reached by NAME (a bus request, a stream key), so a
+    # deployment without either still boots — the delivery types are simply
+    # ones nobody can usefully subscribe to there.
+    "stapel-core>=0.35.0,<1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/usestapel/stapel-webhooks"
+Repository = "https://github.com/usestapel/stapel-webhooks"
+Documentation = "https://github.com/usestapel/stapel-webhooks#readme"
+Changelog = "https://github.com/usestapel/stapel-webhooks/blob/main/CHANGELOG.md"
+Issues = "https://github.com/usestapel/stapel-webhooks/issues"
+
+[project.optional-dependencies]
+all = []
+
+[tool.setuptools]
+package-dir = {"stapel_webhooks" = "."}
+packages = ["stapel_webhooks", "stapel_webhooks.migrations"]
+
+[tool.setuptools.package-data]
+# The contract documents ship IN THE WHEEL: that is what makes
+# `stapel-catalog --from-installed` possible, i.e. what turns catalog
+# freshness from somebody's discipline into a property of the lockfile.
+# A module that keeps them repo-only publishes code an agent cannot read.
+# Every pattern below matches real files in the tree: a package-data entry
+# matching nothing is a wheel that silently ships less than the repo, and
+# the schemas are what make `event_catalog()` work off the LOCKFILE rather
+# than off somebody's checkout.
+stapel_webhooks = [
+    "py.typed",
+    "CONFIG.MD",
+    "migrations/*.py",
+    "schemas/**/*.json",
+    "translations/*.json",
+]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+# Single source for the git hooks and CI (they pass the same flags on the CLI).
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+django_find_project = false
+addopts = "--tb=short -q --import-mode=importlib"
+
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    "*/conftest.py",
+    "*/migrations/*",
+]

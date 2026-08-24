@@ -1,0 +1,13 @@
+{
+  "error.400.webhooks_insecure_target": "El destino de un webhook debe ser una URL https",
+  "error.400.webhooks_invalid_filter": "El filtro no es un predicado válido sobre el contenido del evento",
+  "error.400.webhooks_invalid_target": "El destino no encaja con este tipo de entrega",
+  "error.400.webhooks_not_signed_type": "Este tipo de entrega no lleva firma, así que no hay secreto que rotar",
+  "error.400.webhooks_unknown_delivery": "Tipo de entrega desconocido {delivery}",
+  "error.400.webhooks_unknown_event": "Ningún módulo instalado emite el evento {event_type}",
+  "error.403.webhooks_forbidden": "No tienes acceso a esta suscripción",
+  "error.404.webhooks_delivery_not_found": "Entrega no encontrada",
+  "error.404.webhooks_subscription_not_found": "Suscripción no encontrada",
+  "error.409.webhooks_not_replayable": "Solo se puede reenviar una entrega que haya ido a la cola de fallidas",
+  "error.409.webhooks_subscription_cap": "Ya tienes el número máximo de suscripciones"
+}
