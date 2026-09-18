@@ -6,6 +6,28 @@ Pre-1.0 semver: **minor = breaking**, patch = compatible.
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-09-18
+
+### Fixed — the delivery log declared a status it answers as null
+
+`DeliveryPresenterDTO.response_status` was declared a required, non-nullable
+integer, and the wire answers `null` for every delivery that has not been
+attempted — the state a row is in the moment `plan_delivery` writes it and the
+state `replay` puts it back into.
+
+The claim came from stapel-core: `presenters._infer_type` mapped a Django field
+class through `_TYPE_MAP` without reading `field.null`, so
+`IntegerField(null=True)` inferred a non-optional `int`. Core 0.74.0 reads
+`null=True`, `docs/schema.json` is re-emitted against 0.84.0 and now declares
+`response_status` nullable, and the two `KNOWN_MISMATCHES` entries in
+`tests/test_contract_wire.py` are deleted — the dict is empty and all 9 driven
+operations answer the body they declare.
+
+### Changed
+- **`stapel-core>=0.35.0` → `>=0.84.0`.** The emitted contract is the floor: on
+  an older core this wheel ships a document that calls a nullable column
+  non-nullable.
+
 ## [0.1.1] — 2026-08-24
 
 ### Added

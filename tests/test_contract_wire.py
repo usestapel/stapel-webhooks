@@ -69,10 +69,11 @@ same defect:
   ``required`` with no ``nullable``. Every presenter in the fleet that names
   a nullable column in ``fields`` carries the same claim.
 
-Both are left exactly as they are: this is a gate, not a fix. The other
-seven operations are honest, in both states, including every ``nullable``
-claim on the subscription shape. ``test_the_gate_is_not_blind`` proves that
-is a finding rather than a gate that never looked.
+stapel-core 0.74.0 teaches ``_infer_type`` to read ``field.null``, so the
+presenter declares ``response_status`` nullable and both operations are
+honest. The floor names that core, the document is emitted against it, and
+``KNOWN_MISMATCHES`` is empty. ``test_the_gate_is_not_blind`` proves that is a
+finding rather than a gate that never looked.
 """
 import copy
 import json
@@ -554,31 +555,10 @@ def _delivery_replay(call):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-_RESPONSE_STATUS_DEFECT = (
-    "declares DeliveryPresenterDTO with response_status as a REQUIRED, "
-    "non-nullable integer, and the wire answers null for every delivery that "
-    "has not been attempted — the state every row is in the moment "
-    "services.plan_delivery writes it, and the state services.replay puts a "
-    "row back into (it sets response_status = None explicitly). The column is "
-    "models.IntegerField(null=True) (models.py, Delivery.response_status). "
-    "Root cause is upstream: DeliveryPresenter.fields lists response_status as "
-    "an as-is model field and stapel_core.django.api.presenters._infer_type "
-    "(presenters.py:130) maps the Django field class through _TYPE_MAP without "
-    "reading field.null, so IntegerField(null=True) infers int and the "
-    "dataclass field is non-optional. Owners: stapel-core (the inference) and "
-    "stapel-webhooks (which could declare the field explicitly as "
-    "Optional[int] in custom_fields, the way it already does for every "
-    "datetime)."
-)
-
 #: Operations whose declared body the wire does not send, with the defect and
 #: its owner. ``strict=True``: a fixed entry fails until it is deleted, so a
 #: finding can be neither forgotten nor quietly kept.
-KNOWN_MISMATCHES = {
-    ("GET", V1 + "/deliveries/{delivery_id}"): _RESPONSE_STATUS_DEFECT,
-    ("GET", V1 + "/subscriptions/{subscription_id}/deliveries"):
-        _RESPONSE_STATUS_DEFECT,
-}
+KNOWN_MISMATCHES: dict[tuple[str, str], str] = {}
 
 
 def test_the_contract_declares_something_to_check():

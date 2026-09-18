@@ -587,6 +587,7 @@
           },
           "response_status": {
             "type": "integer",
+            "nullable": true,
             "description": "response status"
           },
           "last_error": {
