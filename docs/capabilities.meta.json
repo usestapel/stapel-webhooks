@@ -1,0 +1,135 @@
+{
+  "_comment": "Hand-curated layer of docs/capabilities.json (capability-config.md §2 p.3). The emitter (stapel_webhooks/_capabilities.py) derives key/kind/default of each axis from conf.py DEFAULTS and the operations from docs/schema.json + urls_v1.GATE_REGISTRY, and merges this layer over them; an axis selected by _capabilities.AXES but missing here (or vice versa) is a loud emission error. The surface section is derived from surface_roots by AST; a selected symbol without an intent line fails `make contract`.",
+  "provides": "The reaction layer: declarative 'when event X happens, do Y' subscriptions over the fleet's comm Actions, delivered as HMAC-signed retried webhooks, notifications, realtime frames or allowlisted app-layer callables, with a per-delivery evidence row, a retry ladder, a dead letter and replay.",
+  "axes": {
+    "WATCH_CATALOG": {
+      "business_label": "Every installed event is subscribable",
+      "summary": "On by default: every event an installed package declares in schemas/emits/ can be subscribed to, so what customers may react to follows what is installed. Off: only WATCH_EVENTS are wired."
+    },
+    "DISPATCH_MODE": {
+      "business_label": "Where deliveries run",
+      "summary": "deferred (default): a matching event writes delivery rows and a drain performs the network calls. inline: deliver right after commit in the emitting process — a dev/monolith convenience that webhooks.W004 warns about."
+    },
+    "ALLOW_INSECURE_TARGETS": {
+      "business_label": "Deliver to private or plain-http endpoints",
+      "summary": "Ships closed: webhook targets must be https and resolve to a public address (SSRF guard). True opens http:// and private/loopback targets for a dev box or an in-cluster receiver; webhooks.W003 reports it while it is on."
+    }
+  },
+  "extension_points": [
+    {
+      "name": "DELIVERY_TYPES",
+      "kind": "merge_registry",
+      "summary": "Delivery-type registry ({name: spec | None}, merged over the webhook/notification/ws/custom built-ins; register_delivery_type() at runtime). None removes a type — how a host closes custom. A spec replaces, no deep merge."
+    },
+    {
+      "name": "TRANSPORT",
+      "kind": "dotted_path",
+      "summary": "The outbound HTTP transport (post + classify): egress proxy, mTLS or a test double. The default carries the SSRF guard. Never read from the environment."
+    },
+    {
+      "name": "SIGNER",
+      "kind": "dotted_path",
+      "summary": "Signature scheme (sign/verify) — speak another provider's signature dialect. Never read from the environment."
+    },
+    {
+      "name": "MATCHER",
+      "kind": "dotted_path",
+      "summary": "The subscription filter language: callable(payload, predicate) -> bool. Never read from the environment."
+    },
+    {
+      "name": "EXTRA_CATALOG_PATHS",
+      "kind": "list",
+      "summary": "Package roots whose schemas/emits/ also feed the event catalog — lets a non-app library contribute subscribable events."
+    },
+    {
+      "name": "STAPEL_SWAP[\"WEBHOOKS_SUBSCRIPTION_PRESENTER\"] / [\"WEBHOOKS_DELIVERY_PRESENTER\"]",
+      "kind": "presenter",
+      "summary": "Reshape either response body with a Presenter subclass."
+    }
+  ],
+  "surface_roots": [
+    {
+      "select": "functions",
+      "path": "registry.py"
+    },
+    {
+      "select": "functions",
+      "path": "catalog.py"
+    }
+  ],
+  "surface": {
+    "register_delivery_type": {
+      "kind": "factory",
+      "intent": "Add, replace or remove (None) a delivery type at runtime, over the built-ins and STAPEL_WEBHOOKS['DELIVERY_TYPES'] — the code twin of the settings seam for a host that registers after boot."
+    },
+    "reset_delivery_types": {
+      "kind": "factory",
+      "intent": "Tests only: drop runtime delivery-type overrides so one test's registration does not leak into the next."
+    },
+    "get_delivery_types": {
+      "kind": "factory",
+      "intent": "The effective delivery-type registry (built-ins <- settings <- runtime, None removing); read this instead of the setting so removals and runtime registrations are honoured."
+    },
+    "resolve_delivery": {
+      "kind": "factory",
+      "intent": "The live spec for one delivery type, raising UnknownDeliveryType for a removed or unknown one — the lookup every planner and validator goes through."
+    },
+    "delivery_handler": {
+      "kind": "factory",
+      "intent": "Import and return a delivery type's handler callable; the one place a spec's dotted path becomes code."
+    },
+    "validate_target": {
+      "kind": "gate_function",
+      "intent": "Refuse a subscription target its delivery type cannot use (required keys, any-of keys, the type's own target_validator) before a row is written."
+    },
+    "is_signed": {
+      "kind": "predicate",
+      "intent": "Whether subscriptions of a delivery type carry an HMAC signing secret — decides whether a secret is minted and shown once."
+    },
+    "is_external": {
+      "kind": "predicate",
+      "intent": "Whether a delivery leaves the deployment, i.e. whether the SSRF guard and the external-delivery rules apply."
+    },
+    "build_catalog": {
+      "kind": "factory",
+      "intent": "Scan every source (installed packages' schemas/emits/, EXTRA_CATALOG_PATHS, WATCH_EVENTS) into {event: entry}, uncached — for a check or a command that must see the current state."
+    },
+    "event_catalog": {
+      "kind": "factory",
+      "intent": "Every subscribable event of this deployment, keyed by name (cached) — the vocabulary the create endpoint and webhooks.event_catalog answer from."
+    },
+    "reset_catalog": {
+      "kind": "factory",
+      "intent": "Drop the cached catalog after INSTALLED_APPS changes, and between tests."
+    },
+    "catalog_event_names": {
+      "kind": "factory",
+      "intent": "The sorted subscribable event names — what a subscription UI offers."
+    },
+    "is_known_event": {
+      "kind": "predicate",
+      "intent": "Whether an event name is declared by some installed package — the check a subscription create runs before accepting a topic."
+    },
+    "event_schema": {
+      "kind": "factory",
+      "intent": "The declared JSON schema of an event, if the catalog carries one — what a filter builder reads to offer fields."
+    }
+  },
+  "requires": [
+    {
+      "module": "stapel-core",
+      "optional": false,
+      "reason": "comm Action bus with the transactional outbox (what is reacted to), Signals (ws delivery), notifications publish (notification delivery), the SSRF address guard, AppSettings, JWT auth and the error envelope"
+    },
+    {
+      "module": "stapel-notifications",
+      "optional": true,
+      "reason": "renders and sends the notification delivery type; without it that type cannot deliver"
+    },
+    {
+      "module": "stapel-realtime",
+      "optional": true,
+      "reason": "carries the ws delivery type's frames to connected clients"
+    }
+  ]
+}

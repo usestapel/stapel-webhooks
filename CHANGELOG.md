@@ -4,7 +4,19 @@ All notable changes to stapel-webhooks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Pre-1.0 semver: **minor = breaking**, patch = compatible.
 
-## [Unreleased]
+## [Unreleased] — proposed 0.1.3
+
+### Added — `docs/capabilities.json`, emitted and drift-gated
+
+The module had the contract triad but no capabilities document, so the
+fleet's capability index could not see it. `_capabilities.py` is the thin
+shim over `stapel_tools.capabilities` the other libraries use: axes
+`WATCH_CATALOG`, `DISPATCH_MODE`, `ALLOW_INSECURE_TARGETS` (key/kind/default
+from `conf.DEFAULTS`), operations from `docs/schema.json` +
+`urls_v1.GATE_REGISTRY`, surface derived from `registry.py` / `catalog.py`,
+prose in the curated `docs/capabilities.meta.json`. `make contract` emits it,
+`make contract-check` and `tests/test_capabilities.py` gate drift, and the
+wheel ships it.
 
 ## [0.1.2] — 2026-09-18
 

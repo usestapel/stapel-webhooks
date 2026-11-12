@@ -19,22 +19,30 @@ PYTHON ?= python3
 # to live HERE. A module whose only OpenAPI lives inside somebody's host is a
 # module no frontend codegen can generate a client for, and the react pair
 # then hand-writes the types off presenters.py and finds out at runtime.
+#
+# docs/capabilities.json is the fourth artifact (stapel_tools.capabilities):
+# axes derived from conf.py DEFAULTS (_capabilities.AXES), operations from
+# schema.json + urls_v1.GATE_REGISTRY, surface from the meta layer's
+# surface_roots, prose from the curated docs/capabilities.meta.json. It reads
+# the schema.json emitted on the line before it.
 contract:
 	$(PYTHON) -m stapel_webhooks._codegen --out docs
+	$(PYTHON) -m stapel_webhooks._capabilities --out docs
 
 # Drift gate: regenerate into a temp dir and diff against the committed docs/*.
 contract-check:
 	@tmp=$$(mktemp -d); \
 	$(PYTHON) -m stapel_webhooks._codegen --out "$$tmp" || { rm -rf "$$tmp"; exit 1; }; \
+	$(PYTHON) -m stapel_webhooks._capabilities --out "$$tmp" || { rm -rf "$$tmp"; exit 1; }; \
 	rc=0; \
-	for f in schema.json flows.json errors.json; do \
+	for f in schema.json flows.json errors.json capabilities.json; do \
 		if ! cmp -s "docs/$$f" "$$tmp/$$f"; then \
 			echo "DRIFT: docs/$$f is stale — run 'make contract' and commit it"; \
 			diff "docs/$$f" "$$tmp/$$f" | head -20; rc=1; \
 		fi; \
 	done; \
 	rm -rf "$$tmp"; \
-	if [ $$rc -eq 0 ]; then echo "contract-check: docs/{schema,flows,errors}.json up to date"; fi; \
+	if [ $$rc -eq 0 ]; then echo "contract-check: docs/{schema,flows,errors,capabilities}.json up to date"; fi; \
 	exit $$rc
 
 # The ruff selection the git hooks and CI both use (single source: pyproject).

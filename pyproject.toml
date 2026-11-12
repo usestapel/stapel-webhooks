@@ -67,6 +67,7 @@ stapel_webhooks = [
     "docs/schema.json",
     "docs/flows.json",
     "docs/errors.json",
+    "docs/capabilities.json",
     "migrations/*.py",
     "schemas/**/*.json",
     "translations/*.json",
