@@ -4,7 +4,7 @@ All notable changes to stapel-webhooks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Pre-1.0 semver: **minor = breaking**, patch = compatible.
 
-## [Unreleased] — proposed 0.1.3
+## [0.1.3] — 2026-11-13
 
 ### Added — `docs/capabilities.json`, emitted and drift-gated
 
