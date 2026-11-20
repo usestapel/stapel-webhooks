@@ -35,14 +35,14 @@ contract-check:
 	$(PYTHON) -m stapel_webhooks._codegen --out "$$tmp" || { rm -rf "$$tmp"; exit 1; }; \
 	$(PYTHON) -m stapel_webhooks._capabilities --out "$$tmp" || { rm -rf "$$tmp"; exit 1; }; \
 	rc=0; \
-	for f in schema.json flows.json errors.json capabilities.json; do \
+	for f in schema.json schema.v2.json flows.json errors.json capabilities.json; do \
 		if ! cmp -s "docs/$$f" "$$tmp/$$f"; then \
 			echo "DRIFT: docs/$$f is stale — run 'make contract' and commit it"; \
 			diff "docs/$$f" "$$tmp/$$f" | head -20; rc=1; \
 		fi; \
 	done; \
 	rm -rf "$$tmp"; \
-	if [ $$rc -eq 0 ]; then echo "contract-check: docs/{schema,flows,errors,capabilities}.json up to date"; fi; \
+	if [ $$rc -eq 0 ]; then echo "contract-check: docs/{schema,schema.v2,flows,errors,capabilities}.json up to date"; fi; \
 	exit $$rc
 
 # The ruff selection the git hooks and CI both use (single source: pyproject).
